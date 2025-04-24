@@ -16,56 +16,76 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MainWindow extends MyCanva {
-    private JPanel MainWindowPanel;
-    private JButton rectangleButton;
-    private JButton circleButton;
-    private JButton lineSegmentButton;
-    private JComboBox comboBox1;
-    private JButton colorizeButton;
-    private JButton deleteButton;
-    private JButton squareButton;
-    private JPanel CanvaPanel;
-    private JPanel voidPanel;
-    private JPanel voidPanel1;
-    private JPanel voidPanel2;
-    private JPanel voidPanel3;
-    private JPanel voidPanel4;
-    private JPanel voidPanel5;
-    private JPanel voidPanel6;
-    private JPanel voidPanel7;
-    private JButton redoButton;
-    private JButton undoButton;
-    private JButton loadButton;
-    private JButton saveButton;
-    private JButton resizeButton;
-    private JButton moveButton;
-
+public class MainWindow extends JFrame {
+    private final JComboBox<Shape> comboBox1;
 
     public MainWindow() {
         setTitle("Vector Drawing Application");
         setSize(800, 500);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        //MainWindowPanel.setBackground(Color.LIGHT_GRAY);
-        voidPanel.setBackground(Color.LIGHT_GRAY);
-        voidPanel1.setBackground(Color.LIGHT_GRAY);
-        voidPanel2.setBackground(Color.LIGHT_GRAY);
-        voidPanel3.setBackground(Color.LIGHT_GRAY);
-        voidPanel4.setBackground(Color.LIGHT_GRAY);
-        voidPanel5.setBackground(Color.LIGHT_GRAY);
-        voidPanel6.setBackground(Color.LIGHT_GRAY);
-        voidPanel7.setBackground(Color.LIGHT_GRAY);
-        setContentPane(MainWindowPanel);
+
+        // Main panel
+        JPanel mainWindowPanel = new JPanel(new BorderLayout());
+        mainWindowPanel.setBackground(Color.LIGHT_GRAY);
+
+        // Left panel for buttons
+        JPanel buttonPanel = new JPanel(new GridLayout(0, 1, 5, 5));
+        buttonPanel.setBackground(Color.LIGHT_GRAY);
+
+        JButton rectangleButton = new JButton("Rectangle");
+        JButton circleButton = new JButton("Circle");
+        JButton lineSegmentButton = new JButton("Line Segment");
+        JButton squareButton = new JButton("Square");
+        JButton deleteButton = new JButton("Delete");
+        JButton colorizeButton = new JButton("Colorize");
+        JButton resizeButton = new JButton("Resize");
+        JButton moveButton = new JButton("Move");
+        JButton loadButton = new JButton("Load");
+        JButton saveButton = new JButton("Save");
+        JButton undoButton = new JButton("Undo");
+        JButton redoButton = new JButton("Redo");
+
+        buttonPanel.add(rectangleButton);
+        buttonPanel.add(circleButton);
+        buttonPanel.add(lineSegmentButton);
+        buttonPanel.add(squareButton);
+        buttonPanel.add(deleteButton);
+        buttonPanel.add(colorizeButton);
+        buttonPanel.add(resizeButton);
+        buttonPanel.add(moveButton);
+        buttonPanel.add(loadButton);
+        buttonPanel.add(saveButton);
+        buttonPanel.add(undoButton);
+        buttonPanel.add(redoButton);
+
+        // Canvas panel
+        JPanel canvaPanel = new JPanel(new BorderLayout());
+        canvaPanel.setPreferredSize(new Dimension(600, 400));
+        canvaPanel.setBackground(Color.WHITE);
+        Border blackLine = BorderFactory.createLineBorder(Color.BLACK);
+        canvaPanel.setBorder(blackLine);
+
         DrawingPanel drawingPanel = new DrawingPanel();
-        drawingPanel.setPreferredSize(new Dimension(600, 400));
         JScrollPane scrollPane = new JScrollPane(drawingPanel,
                 JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                 JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        CanvaPanel.setLayout(new BorderLayout());
-        CanvaPanel.add(scrollPane, BorderLayout.CENTER);
-        Border blackLine = BorderFactory.createLineBorder(Color.BLACK);
-        CanvaPanel.setBorder(blackLine);
+        canvaPanel.add(scrollPane, BorderLayout.CENTER);
+
+        // ComboBox for shapes
+        comboBox1 = new JComboBox<>();
+        JPanel comboBoxPanel = new JPanel(new FlowLayout());
+        comboBoxPanel.add(new JLabel("Shapes:"));
+        comboBoxPanel.add(comboBox1);
+
+        // Add components to the main panel
+        mainWindowPanel.add(buttonPanel, BorderLayout.WEST);
+        mainWindowPanel.add(canvaPanel, BorderLayout.CENTER);
+        mainWindowPanel.add(comboBoxPanel, BorderLayout.SOUTH);
+
+        setContentPane(mainWindowPanel);
         setVisible(true);
+
+        // Add action listeners
         circleButton.addActionListener(_ -> showCircleInputDialog(drawingPanel));
         rectangleButton.addActionListener(_ -> showRectangleInputDialog(drawingPanel));
         squareButton.addActionListener(_ -> showSquareInputDialog(drawingPanel));
@@ -93,6 +113,9 @@ public class MainWindow extends MyCanva {
     public static void main(String[] args) {
         new MainWindow();
     }
+
+    // Add the methods like showCircleInputDialog, showRectangleInputDialog, etc., here
+    // (reuse the methods from your existing implementation)
 
     private void showSaveInputDialog(DrawingPanel drawingPanel) throws IOException {
         String path = "";
@@ -152,14 +175,7 @@ public class MainWindow extends MyCanva {
                             JOptionPane.showMessageDialog(this, "Please enter different points", "Invalid Input",
                                     JOptionPane.ERROR_MESSAGE);
                         }
-                        Point position1 = new Point(x1, y1);
-                        Point position2 = new Point(x2, y2);
-                        Line line = new Line();
-                        line.setPosition1(position1);
-                        line.setPosition2(position2);
-                        line.setColor(Color.BLACK);
-                        drawingPanel.addShape(line);
-                        comboBox1.addItem(line);
+                        drawLine(drawingPanel, x1, y1, x2, y2);
                     } catch (IndexOutOfBoundsException e) {
                         JOptionPane.showMessageDialog(this, "Insufficient data for Line drawing in: " + shape, "Invalid Input", JOptionPane.ERROR_MESSAGE);
                     }
@@ -169,21 +185,7 @@ public class MainWindow extends MyCanva {
                         int x = Integer.parseInt(data[1]);
                         int y = Integer.parseInt(data[2]);
                         double radius = Double.parseDouble(data[3]);
-                        if (x < 0 || y < 0 || radius <= 0) {
-                            JOptionPane.showMessageDialog(this, "Please enter positive values for X, Y, and Radius.",
-                                    "Invalid Input", JOptionPane.ERROR_MESSAGE);
-                            return;
-                        }
-                        Point position = new Point(x, y);
-                        Map<String, Double> properties = new HashMap<>();
-                        properties.put("radius", radius);
-                        Circle circle = new Circle();
-                        circle.setPosition(position);
-                        circle.setProperties(properties);
-                        circle.getFillColor(Color.WHITE);
-                        circle.setColor(Color.BLACK);
-                        drawingPanel.addShape(circle);
-                        comboBox1.addItem(circle);
+                        if (drawCircle(drawingPanel, x, y, radius)) return;
                     } catch (IndexOutOfBoundsException e) {
                         JOptionPane.showMessageDialog(this, "Insufficient data for Circle drawing in: " + shape, "Invalid Input", JOptionPane.ERROR_MESSAGE);
                     }
@@ -198,16 +200,7 @@ public class MainWindow extends MyCanva {
                                     "Invalid Input", JOptionPane.ERROR_MESSAGE);
                             return;
                         }
-                        Point position = new Point(x, y);
-                        Map<String, Double> properties = new HashMap<>();
-                        properties.put("Length", length);
-                        Square square = new Square();
-                        square.setPosition(position);
-                        square.setProperties(properties);
-                        square.getFillColor(Color.WHITE);
-                        square.setColor(Color.BLACK);
-                        drawingPanel.addShape(square);
-                        comboBox1.addItem(square);
+                        drawSquare(drawingPanel, x, y, length);
                     } catch (IndexOutOfBoundsException e) {
                         JOptionPane.showMessageDialog(this, "Insufficient data for Square drawing in: " + shape, "Invalid Input", JOptionPane.ERROR_MESSAGE);
                     }
@@ -242,6 +235,49 @@ public class MainWindow extends MyCanva {
                         JOptionPane.showMessageDialog(this, "Incorrect Shape", "Invalid Input", JOptionPane.ERROR_MESSAGE);
             }
         }
+    }
+
+    private void drawSquare(DrawingPanel drawingPanel, int x, int y, double length) {
+        Point position = new Point(x, y);
+        Map<String, Double> properties = new HashMap<>();
+        properties.put("Length", length);
+        Square square = new Square();
+        square.setPosition(position);
+        square.setProperties(properties);
+        square.getFillColor(Color.WHITE);
+        square.setColor(Color.BLACK);
+        drawingPanel.addShape(square);
+        comboBox1.addItem(square);
+    }
+
+    private boolean drawCircle(DrawingPanel drawingPanel, int x, int y, double radius) {
+        if (x < 0 || y < 0 || radius <= 0) {
+            JOptionPane.showMessageDialog(this, "Please enter positive values for X, Y, and Radius.",
+                    "Invalid Input", JOptionPane.ERROR_MESSAGE);
+            return true;
+        }
+        Point position = new Point(x, y);
+        Map<String, Double> properties = new HashMap<>();
+        properties.put("radius", radius);
+        Circle circle = new Circle();
+        circle.setPosition(position);
+        circle.setProperties(properties);
+        circle.getFillColor(Color.WHITE);
+        circle.setColor(Color.BLACK);
+        drawingPanel.addShape(circle);
+        comboBox1.addItem(circle);
+        return false;
+    }
+
+    private void drawLine(DrawingPanel drawingPanel, int x1, int y1, int x2, int y2) {
+        Point position1 = new Point(x1, y1);
+        Point position2 = new Point(x2, y2);
+        Line line = new Line();
+        line.setPosition1(position1);
+        line.setPosition2(position2);
+        line.setColor(Color.BLACK);
+        drawingPanel.addShape(line);
+        comboBox1.addItem(line);
     }
 
     private void showMoveInputDialog(DrawingPanel drawingPanel) {
@@ -561,21 +597,7 @@ public class MainWindow extends MyCanva {
                 int y = Integer.parseInt(yField.getText());
                 double radius = Double.parseDouble(radiusField.getText());
 
-                if (x < 0 || y < 0 || radius <= 0) {
-                    JOptionPane.showMessageDialog(this, "Please enter positive values for X, Y, and Radius.",
-                            "Invalid Input", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                Point position = new Point(x, y);
-                Map<String, Double> properties = new HashMap<>();
-                properties.put("radius", radius);
-                Circle circle = new Circle();
-                circle.setPosition(position);
-                circle.setProperties(properties);
-                circle.getFillColor(Color.WHITE);
-                circle.setColor(Color.BLACK);
-                drawingPanel.addShape(circle);
-                comboBox1.addItem(circle);
+                drawCircle(drawingPanel, x, y, radius);
             } catch (NumberFormatException e) {
                 JOptionPane.showMessageDialog(this, "Please enter valid numeric values.",
                         "Invalid Input", JOptionPane.ERROR_MESSAGE);
@@ -616,14 +638,7 @@ public class MainWindow extends MyCanva {
                     JOptionPane.showMessageDialog(this, "Please enter different points", "Invalid Input",
                             JOptionPane.ERROR_MESSAGE);
                 }
-                Point position1 = new Point(x1, y1);
-                Point position2 = new Point(x2, y2);
-                Line line = new Line();
-                line.setPosition1(position1);
-                line.setPosition2(position2);
-                line.setColor(Color.BLACK);
-                drawingPanel.addShape(line);
-                comboBox1.addItem(line);
+                drawLine(drawingPanel, x1, y1, x2, y2);
             } catch (NumberFormatException e) {
                 JOptionPane.showMessageDialog(this, "Please enter valid numeric values.",
                         "Invalid Input", JOptionPane.ERROR_MESSAGE);
@@ -658,16 +673,7 @@ public class MainWindow extends MyCanva {
                             "Invalid Input", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-                Point position = new Point(x, y);
-                Map<String, Double> properties = new HashMap<>();
-                properties.put("Length", length);
-                Square square = new Square();
-                square.setPosition(position);
-                square.setProperties(properties);
-                square.getFillColor(Color.WHITE);
-                square.setColor(Color.BLACK);
-                drawingPanel.addShape(square);
-                comboBox1.addItem(square);
+                drawSquare(drawingPanel, x, y, length);
             } catch (NumberFormatException e) {
                 JOptionPane.showMessageDialog(this, "Please enter valid numeric values.",
                         "Invalid Input", JOptionPane.ERROR_MESSAGE);
